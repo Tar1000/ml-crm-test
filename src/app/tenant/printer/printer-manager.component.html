@@ -1,0 +1,172 @@
+<div class="printer-panel">
+
+  <!-- Header -->
+  <div class="panel-header">
+    <div>
+      <h3>Printers</h3>
+      <p class="muted">Manage receipt, ticket, and document printers for this tenant.</p>
+    </div>
+    <button class="btn-primary" (click)="openAdd()">+ Add Printer</button>
+  </div>
+
+  <!-- Printer List -->
+  <div class="printer-list">
+    @for (printer of printerService.printers(); track printer.id) {
+      <div class="printer-card" [class.offline]="!printer.isOnline">
+
+        <div class="printer-icon">{{ typeIcon(printer.type) }}</div>
+
+        <div class="printer-info">
+          <div class="printer-name">
+            {{ printer.name }}
+            @if (printer.isDefault) {
+              <span class="badge badge-primary">Default</span>
+            }
+            <span class="badge" [class]="printer.isOnline ? 'badge-ok' : 'badge-err'">
+              {{ printer.isOnline ? 'Online' : 'Offline' }}
+            </span>
+          </div>
+          <div class="printer-meta">
+            <span>{{ printer.type | titlecase }}</span>
+            <span class="dot">·</span>
+            <span>{{ connectionLabel(printer.connection) }}</span>
+            @if (printer.ipAddress) {
+              <span class="dot">·</span>
+              <span class="mono">{{ printer.ipAddress }}{{ printer.port ? ':' + printer.port : '' }}</span>
+            }
+            <span class="dot">·</span>
+            <span>{{ printer.paperSize }}</span>
+            @if (printer.location) {
+              <span class="dot">·</span>
+              <span>📍 {{ printer.location }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="printer-actions">
+          @if (!printer.isDefault) {
+            <button class="btn-ghost-sm" (click)="printerService.setDefault(printer.id)">
+              Set Default
+            </button>
+          }
+          <button class="btn-ghost-sm" (click)="testPrint(printer.id)" [disabled]="!printer.isOnline">
+            Test Print
+          </button>
+          <button class="btn-ghost-sm" (click)="openEdit(printer)">Edit</button>
+          <button class="btn-danger-sm" (click)="remove(printer.id)">✕</button>
+        </div>
+
+      </div>
+    }
+
+    @if (printerService.printers().length === 0) {
+      <div class="empty-state">No printers configured. Add one to get started.</div>
+    }
+  </div>
+
+  <!-- Add / Edit Form -->
+  @if (showForm()) {
+    <div class="form-overlay">
+      <div class="form-card">
+        <h4>{{ editingId() ? 'Edit Printer' : 'Add Printer' }}</h4>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Name</label>
+            <input type="text" [ngModel]="form().name" (ngModelChange)="patchForm({ name: $event })" placeholder="e.g. Front Counter Receipt" />
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input type="text" [ngModel]="form().location" (ngModelChange)="patchForm({ location: $event })" placeholder="e.g. Kitchen, Bar, Counter" />
+          </div>
+
+          <div class="field">
+            <label>Printer Type</label>
+            <select [ngModel]="form().type" (ngModelChange)="patchForm({ type: $event })">
+              @for (t of printerTypes; track t) {
+                <option [value]="t">{{ t | titlecase }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Connection</label>
+            <select [ngModel]="form().connection" (ngModelChange)="patchForm({ connection: $event })">
+              @for (c of connections; track c) {
+                <option [value]="c">{{ connectionLabel(c) }}</option>
+              }
+            </select>
+          </div>
+
+          @if (form().connection === 'network') {
+            <div class="field">
+              <label>IP Address</label>
+              <input type="text" [ngModel]="form().ipAddress" (ngModelChange)="patchForm({ ipAddress: $event })" placeholder="192.168.1.x" />
+            </div>
+            <div class="field">
+              <label>Port</label>
+              <input type="number" [ngModel]="form().port" (ngModelChange)="patchForm({ port: $event })" placeholder="9100" />
+            </div>
+          }
+
+          <div class="field">
+            <label>Paper Size</label>
+            <select [ngModel]="form().paperSize" (ngModelChange)="patchForm({ paperSize: $event })">
+              @for (p of paperSizes; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>DPI (optional)</label>
+            <input type="number" [ngModel]="form().dpi" (ngModelChange)="patchForm({ dpi: $event })" placeholder="203" />
+          </div>
+
+          <div class="field field-check">
+            <label>
+              <input type="checkbox" [ngModel]="form().isDefault" (ngModelChange)="patchForm({ isDefault: $event })" />
+              Set as Default Printer
+            </label>
+          </div>
+
+          <div class="field field-check">
+            <label>
+              <input type="checkbox" [ngModel]="form().isOnline" (ngModelChange)="patchForm({ isOnline: $event })" />
+              Mark as Online
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-ghost" (click)="cancel()">Cancel</button>
+          <button class="btn-primary" (click)="save()" [disabled]="!form().name">
+            {{ editingId() ? 'Save Changes' : 'Add Printer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Print Job Queue -->
+  @if (printerService.jobs().length > 0) {
+    <div class="job-section">
+      <div class="job-header">
+        <h4>Print Queue</h4>
+        <button class="btn-ghost-sm" (click)="printerService.clearCompletedJobs()">Clear Done</button>
+      </div>
+      <div class="job-list">
+        @for (job of printerService.jobs(); track job.id) {
+          <div class="job-row">
+            <span class="job-type">{{ job.documentType }}</span>
+            <span class="job-name">{{ job.documentName }}</span>
+            <span class="job-copies">×{{ job.copies }}</span>
+            <span class="badge" [class]="jobStatusClass(job.status)">{{ job.status }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

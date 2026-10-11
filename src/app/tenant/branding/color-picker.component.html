@@ -1,0 +1,246 @@
+<div class="branding-panel">
+
+  <!-- Section: Color Presets -->
+  <section class="panel-section">
+    <h3 class="section-title">Quick Presets</h3>
+    <div class="presets-grid">
+      @for (preset of presets; track preset.name) {
+        <button
+          class="preset-chip"
+          [title]="preset.name"
+          (click)="applyPreset(preset)"
+        >
+          <span class="swatch" [style.background]="preset.primary"></span>
+          <span class="swatch" [style.background]="preset.secondary"></span>
+          <span class="preset-label">{{ preset.name }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Section: Brand Colors -->
+  <section class="panel-section">
+    <h3 class="section-title">Brand Colors</h3>
+    <div class="color-row">
+
+      <div class="color-field">
+        <label>Primary</label>
+        <div class="color-input-wrap">
+          <input
+            type="color"
+            [ngModel]="branding().primaryColor"
+            (ngModelChange)="patch({ primaryColor: $event })"
+          />
+          <input
+            type="text"
+            class="hex-input"
+            [ngModel]="branding().primaryColor"
+            (ngModelChange)="patch({ primaryColor: $event })"
+            maxlength="7"
+            placeholder="#000000"
+          />
+        </div>
+        <div
+          class="color-preview"
+          [style.background]="branding().primaryColor"
+          [style.color]="contrastColor(branding().primaryColor)"
+        >Primary Button</div>
+      </div>
+
+      <div class="color-field">
+        <label>Secondary</label>
+        <div class="color-input-wrap">
+          <input
+            type="color"
+            [ngModel]="branding().secondaryColor"
+            (ngModelChange)="patch({ secondaryColor: $event })"
+          />
+          <input
+            type="text"
+            class="hex-input"
+            [ngModel]="branding().secondaryColor"
+            (ngModelChange)="patch({ secondaryColor: $event })"
+            maxlength="7"
+            placeholder="#000000"
+          />
+        </div>
+        <div
+          class="color-preview"
+          [style.background]="branding().secondaryColor"
+          [style.color]="contrastColor(branding().secondaryColor)"
+        >Accent / Badge</div>
+      </div>
+
+      <div class="color-field">
+        <label>Accent</label>
+        <div class="color-input-wrap">
+          <input
+            type="color"
+            [ngModel]="branding().accentColor"
+            (ngModelChange)="patch({ accentColor: $event })"
+          />
+          <input
+            type="text"
+            class="hex-input"
+            [ngModel]="branding().accentColor"
+            (ngModelChange)="patch({ accentColor: $event })"
+            maxlength="7"
+            placeholder="#000000"
+          />
+        </div>
+        <div
+          class="color-preview"
+          [style.background]="branding().accentColor"
+          [style.color]="contrastColor(branding().accentColor)"
+        >Highlight</div>
+      </div>
+
+      <div class="color-field">
+        <label>Background</label>
+        <div class="color-input-wrap">
+          <input
+            type="color"
+            [ngModel]="branding().backgroundColor"
+            (ngModelChange)="patch({ backgroundColor: $event })"
+          />
+          <input
+            type="text"
+            class="hex-input"
+            [ngModel]="branding().backgroundColor"
+            (ngModelChange)="patch({ backgroundColor: $event })"
+            maxlength="7"
+          />
+        </div>
+      </div>
+
+      <div class="color-field">
+        <label>Text</label>
+        <div class="color-input-wrap">
+          <input
+            type="color"
+            [ngModel]="branding().textColor"
+            (ngModelChange)="patch({ textColor: $event })"
+          />
+          <input
+            type="text"
+            class="hex-input"
+            [ngModel]="branding().textColor"
+            (ngModelChange)="patch({ textColor: $event })"
+            maxlength="7"
+          />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="color-actions">
+      <button class="btn-ghost" (click)="randomize()">🎲 Randomize</button>
+      <button class="btn-ghost" (click)="reset()">↩ Reset Defaults</button>
+    </div>
+  </section>
+
+  <!-- Section: Typography -->
+  <section class="panel-section">
+    <h3 class="section-title">Typography & Shape</h3>
+    <div class="settings-row">
+
+      <div class="field-group">
+        <label>Font Family</label>
+        <select
+          [ngModel]="branding().fontFamily"
+          (ngModelChange)="patch({ fontFamily: $event })"
+        >
+          @for (font of fontOptions; track font.value) {
+            <option [value]="font.value">{{ font.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label>Border Style</label>
+        <div class="radio-group">
+          @for (r of ['sharp','rounded','pill']; track r) {
+            <label class="radio-chip" [class.active]="branding().borderRadius === r">
+              <input
+                type="radio"
+                [value]="r"
+                [ngModel]="branding().borderRadius"
+                (ngModelChange)="patch({ borderRadius: $event })"
+              />
+              {{ r | titlecase }}
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Dark Mode</label>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            [ngModel]="branding().darkMode"
+            (ngModelChange)="patch({ darkMode: $event })"
+          />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section: Receipt Template -->
+  <section class="panel-section">
+    <h3 class="section-title">Receipt Template</h3>
+    <div class="template-cards">
+      @for (tpl of ['classic','modern','minimal']; track tpl) {
+        <button
+          class="template-card"
+          [class.selected]="branding().receiptTemplate === tpl"
+          (click)="patch({ receiptTemplate: $event })"
+          [value]="tpl"
+        >
+          <div class="template-thumb" [attr.data-tpl]="tpl">
+            <div class="thumb-header"></div>
+            <div class="thumb-line"></div>
+            <div class="thumb-line short"></div>
+            <div class="thumb-line"></div>
+            <div class="thumb-footer"></div>
+          </div>
+          <span>{{ tpl | titlecase }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Live Preview -->
+  <section class="panel-section">
+    <h3 class="section-title">Live Preview</h3>
+    <div class="live-preview" [style]="previewText()">
+      <div
+        class="preview-nav"
+        [style.background]="branding().primaryColor"
+        [style.color]="contrastColor(branding().primaryColor)"
+      >
+        <strong>🍽 TenantName</strong>
+        <span>Dashboard</span>
+      </div>
+      <div class="preview-body">
+        <div
+          class="preview-btn"
+          [style.background]="branding().primaryColor"
+          [style.color]="contrastColor(branding().primaryColor)"
+          [style.border-radius]="branding().borderRadius === 'sharp' ? '2px' : branding().borderRadius === 'pill' ? '50px' : '8px'"
+        >New Order</div>
+        <div
+          class="preview-badge"
+          [style.background]="branding().secondaryColor"
+          [style.color]="contrastColor(branding().secondaryColor)"
+        >Active</div>
+        <p [style.font-family]="branding().fontFamily + ', sans-serif'">
+          Sample text in {{ branding().fontFamily }}
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>

@@ -1,0 +1,305 @@
+<div class="settings-shell">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Tenant Settings</h1>
+      <span class="subdomain">{{ tenant().subdomain }}.yourdomain.com</span>
+    </div>
+    <div class="topbar-right">
+      @if (saved()) {
+        <span class="save-toast">✓ Saved</span>
+      }
+      <button class="btn-primary" (click)="save()">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- Tab nav -->
+  <nav class="tab-nav">
+    @for (tab of tabs; track tab.id) {
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === tab.id"
+        (click)="activeTab.set(tab.id)"
+      >
+        <span>{{ tab.icon }}</span>
+        {{ tab.label }}
+      </button>
+    }
+  </nav>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+
+    <!-- Branding & Colors -->
+    @if (activeTab() === 'branding') {
+      <div class="content-section">
+        <div class="section-intro">
+          <h2>Branding & Colors</h2>
+          <p>Customize how this tenant's storefront and receipts look. Changes apply to the customer-facing UI, receipts, and emails.</p>
+        </div>
+
+        <!-- Logo upload -->
+        <div class="card">
+          <h3>Logo</h3>
+          <div class="logo-row">
+            <div class="logo-placeholder">
+              @if (tenant().branding.logoUrl) {
+                <img [src]="tenant().branding.logoUrl" alt="logo" />
+              } @else {
+                <span>🍽</span>
+              }
+            </div>
+            <div>
+              <button class="btn-ghost">Upload Logo</button>
+              <p class="hint">PNG or SVG, max 2 MB. Recommended: 200×60 px.</p>
+            </div>
+          </div>
+        </div>
+
+        <app-color-picker
+          [initialBranding]="tenant().branding"
+          (brandingChange)="onBrandingChange($event)"
+        />
+      </div>
+    }
+
+    <!-- Printers -->
+    @if (activeTab() === 'printers') {
+      <div class="content-section">
+        <div class="section-intro">
+          <h2>Printer Management</h2>
+          <p>Add and configure receipt printers, kitchen ticket printers, and document printers. Set a default printer for each station.</p>
+        </div>
+        <div class="card">
+          <app-printer-manager />
+        </div>
+      </div>
+    }
+
+    <!-- Localization -->
+    @if (activeTab() === 'localization') {
+      <div class="content-section">
+        <div class="section-intro">
+          <h2>Localization</h2>
+          <p>Set the timezone, currency, language, and date format for this tenant.</p>
+        </div>
+        <div class="card">
+          <div class="form-grid-2">
+
+            <div class="field">
+              <label>Timezone</label>
+              <select [ngModel]="locale().timezone" (ngModelChange)="locale.update(l => ({ ...l, timezone: $event }))">
+                @for (tz of timezones; track tz) {
+                  <option [value]="tz">{{ tz }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Currency</label>
+              <select [ngModel]="locale().currency" (ngModelChange)="locale.update(l => ({ ...l, currency: $event }))">
+                @for (c of currencies; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Language</label>
+              <select [ngModel]="locale().language" (ngModelChange)="locale.update(l => ({ ...l, language: $event }))">
+                @for (lang of languages; track lang.value) {
+                  <option [value]="lang.value">{{ lang.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Date Format</label>
+              <select [ngModel]="locale().dateFormat" (ngModelChange)="locale.update(l => ({ ...l, dateFormat: $event }))">
+                @for (f of dateFormats; track f) {
+                  <option [value]="f">{{ f }}</option>
+                }
+              </select>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Notifications -->
+    @if (activeTab() === 'notifications') {
+      <div class="content-section">
+        <div class="section-intro">
+          <h2>Notifications</h2>
+          <p>Choose how staff and customers are notified about orders, stock, and reports.</p>
+        </div>
+        <div class="card">
+          <div class="toggle-list">
+
+            <div class="toggle-row">
+              <div>
+                <strong>Email on New Order</strong>
+                <p>Send email notification to manager when a new order is placed.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="notifications().emailOnNewOrder" (ngModelChange)="notifications.update(n => ({ ...n, emailOnNewOrder: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Email on Low Stock</strong>
+                <p>Alert when a menu item's inventory falls below threshold.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="notifications().emailOnLowStock" (ngModelChange)="notifications.update(n => ({ ...n, emailOnLowStock: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>SMS on New Order</strong>
+                <p>Send SMS to kitchen staff for every new order.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="notifications().smsOnNewOrder" (ngModelChange)="notifications.update(n => ({ ...n, smsOnNewOrder: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>WhatsApp Receipts</strong>
+                <p>Send order confirmation to customers via WhatsApp.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="notifications().whatsappReceipts" (ngModelChange)="notifications.update(n => ({ ...n, whatsappReceipts: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Daily Summary Email</strong>
+                <p>Email a daily sales report to the owner every morning.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="notifications().dailyReportEmail" (ngModelChange)="notifications.update(n => ({ ...n, dailyReportEmail: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+          </div>
+
+          <div class="field" style="margin-top: 20px">
+            <label>Slack Webhook URL (optional)</label>
+            <input
+              type="url"
+              [ngModel]="notifications().slackWebhook"
+              (ngModelChange)="notifications.update(n => ({ ...n, slackWebhook: $event }))"
+              placeholder="https://hooks.slack.com/services/..."
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Advanced -->
+    @if (activeTab() === 'advanced') {
+      <div class="content-section">
+        <div class="section-intro">
+          <h2>Advanced Settings</h2>
+          <p>Order flow, tax, and operational configuration. Changes take effect immediately.</p>
+        </div>
+        <div class="card">
+          <div class="form-grid-2">
+
+            <div class="field">
+              <label>Order ID Prefix</label>
+              <input type="text" [ngModel]="advanced().orderPrefix" (ngModelChange)="advanced.update(a => ({ ...a, orderPrefix: $event }))" />
+            </div>
+
+            <div class="field">
+              <label>Invoice Prefix</label>
+              <input type="text" [ngModel]="advanced().invoicePrefix" (ngModelChange)="advanced.update(a => ({ ...a, invoicePrefix: $event }))" />
+            </div>
+
+            <div class="field">
+              <label>Tax Rate (%)</label>
+              <input type="number" [ngModel]="advanced().taxRate" (ngModelChange)="advanced.update(a => ({ ...a, taxRate: $event }))" min="0" max="100" />
+            </div>
+
+            <div class="field">
+              <label>Service Charge (%)</label>
+              <input type="number" [ngModel]="advanced().serviceCharge" (ngModelChange)="advanced.update(a => ({ ...a, serviceCharge: $event }))" min="0" max="100" />
+            </div>
+
+            <div class="field">
+              <label>Session Timeout (minutes)</label>
+              <input type="number" [ngModel]="advanced().sessionTimeout" (ngModelChange)="advanced.update(a => ({ ...a, sessionTimeout: $event }))" min="5" />
+            </div>
+
+            <div class="field">
+              <label>Max Items per Order</label>
+              <input type="number" [ngModel]="advanced().maxOrderItems" (ngModelChange)="advanced.update(a => ({ ...a, maxOrderItems: $event }))" min="1" />
+            </div>
+
+          </div>
+
+          <div class="toggle-list" style="margin-top: 20px">
+
+            <div class="toggle-row">
+              <div>
+                <strong>Allow Guest Checkout</strong>
+                <p>Customers can place orders without creating an account.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="advanced().allowGuestCheckout" (ngModelChange)="advanced.update(a => ({ ...a, allowGuestCheckout: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Require Table Number</strong>
+                <p>Staff must enter a table number before creating a dine-in order.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="advanced().requireTableNumber" (ngModelChange)="advanced.update(a => ({ ...a, requireTableNumber: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Auto-Confirm Orders</strong>
+                <p>Skip the kitchen confirmation step — orders go straight to preparing.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="advanced().autoConfirmOrders" (ngModelChange)="advanced.update(a => ({ ...a, autoConfirmOrders: $event }))" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row danger">
+              <div>
+                <strong>Maintenance Mode</strong>
+                <p>Temporarily disable the tenant's storefront for customers.</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [ngModel]="advanced().maintenanceMode" (ngModelChange)="advanced.update(a => ({ ...a, maintenanceMode: $event }))" />
+                <span class="slider red"></span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
